@@ -18,7 +18,7 @@ type VideoHandler struct {
 
 func NewVideoHandler(group *echo.Group, videoService *service.VideoService, roomService *service.RoomService) {
 	h := &VideoHandler{s: videoService, r: roomService}
-	group.POST("video/upload", h.UploadVideo)
+	group.POST("/video/upload", h.UploadVideo)
 }
 
 func (h *VideoHandler) UploadVideo(c echo.Context) error {
