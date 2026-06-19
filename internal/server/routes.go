@@ -1,6 +1,8 @@
 package server
 
 import (
+	"StreamRoom/internal/handler"
+	"StreamRoom/internal/service"
 	"net/http"
 	"os"
 
@@ -11,6 +13,7 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 
 	/*--------prefix---------*/
+	apiGroup := s.e.Group("/api")
 	apiV1Group := s.e.Group("/api/v1")
 
 	apiV1Group.Use(echojwt.WithConfig(echojwt.Config{
@@ -22,11 +25,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	publicGroup := s.e.Group("/public")
 
 	/*-------------Service Layer------------*/
+	roomService := service.NewRoomService()
 
 	/*-------------Handler Layer-------------*/
 	//##-with auth-##
 
 	//##-without auth-##
+	handler.NewRoomsHandler(apiGroup, roomService)
 	publicGroup.GET("/health", s.healthHandler)
 
 	return s.e
