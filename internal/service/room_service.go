@@ -1,7 +1,7 @@
 package service
 
 import (
-	"StreamRoom/internal"
+	"StreamRoom/internal/cache"
 	"StreamRoom/internal/views"
 	"fmt"
 	"time"
@@ -15,8 +15,8 @@ func NewRoomService() *RoomService {
 }
 
 func (s *RoomService) CreateRoom(videoURL string) *views.Room {
-	internal.RoomsMu.Lock()
-	defer internal.RoomsMu.Unlock()
+	cache.RoomsMu.Lock()
+	defer cache.RoomsMu.Unlock()
 
 	// Generate a short, unique alphanumeric room code
 	roomID := fmt.Sprintf("ROOM-%d", time.Now().UnixNano()%100000)
@@ -27,7 +27,7 @@ func (s *RoomService) CreateRoom(videoURL string) *views.Room {
 		StartedAt: time.Now(), // The live broadcast ticker clock begins ticking NOW
 	}
 
-	internal.RoomsMap[roomID] = newRoom
+	cache.RoomsMap[roomID] = newRoom
 
 	// Note: In your final system, you would trigger the background synchronization loop
 	// (like the ticker we designed earlier) right here using: go runRoomSyncLoop(newRoom)

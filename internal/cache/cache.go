@@ -1,4 +1,4 @@
-package internal
+package cache
 
 import (
 	"StreamRoom/internal/views"

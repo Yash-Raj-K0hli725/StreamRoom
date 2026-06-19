@@ -39,6 +39,11 @@ func (s *Server) Init() error {
 	e.Server.Handler = s.RegisterRoutes()
 	e.Server.IdleTimeout = time.Minute
 
+	//todo add storage cdn (Cloud flare)
+	err := os.MkdirAll("./storage", os.ModePerm)
+	if err != nil {
+		log.Fatalf("failed to initialize storage path on local machine... :: %v", err)
+	}
 	return nil
 }
 

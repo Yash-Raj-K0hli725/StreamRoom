@@ -26,12 +26,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	/*-------------Service Layer------------*/
 	roomService := service.NewRoomService()
+	videoService := service.NewVideoService()
 
 	/*-------------Handler Layer-------------*/
 	//##-with auth-##
 
 	//##-without auth-##
 	handler.NewRoomsHandler(apiGroup, roomService)
+	handler.NewVideoHandler(apiGroup, videoService, roomService)
 	publicGroup.GET("/health", s.healthHandler)
 
 	return s.e
