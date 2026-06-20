@@ -1,7 +1,7 @@
 package server
 
 import (
-	"StreamRoom/internal/views"
+	"StreamRoom/errz"
 	"errors"
 	"fmt"
 	"log"
@@ -40,15 +40,9 @@ func (s *Server) Init() error {
 	e.Server.Handler = s.RegisterRoutes()
 	e.Server.IdleTimeout = time.Minute
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		code := http.StatusInternalServerError
-		var message interface{} = views.Response{Code: code, Message: err.Error()}
-		var he *echo.HTTPError
-		if ok := errors.As(err, &he); ok {
-			code = he.Code
-			message = he.Message
-		}
+		response := errz.FormatError(err)
 		if !c.Response().Committed {
-			c.JSON(code, message)
+			c.JSON(response.Code, response)
 		}
 	}
 

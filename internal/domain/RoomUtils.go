@@ -1,0 +1,80 @@
+package domain
+
+import (
+	"StreamRoom/internal/views"
+	"StreamRoom/util/enums"
+	"encoding/json"
+	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/labstack/gommon/log"
+)
+
+func (r *Room) startBroadcasting() {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			r.Mu.Lock()
+
+			if len(r.Clients) == 0 {
+				r.Mu.Unlock()
+				log.Printf("[Room %s] Cleaning up empty room", r.ID)
+				DeleteRoom(r.ID)
+				r.Cancel()
+				return
+			}
+
+			// Broadcast current state frame to everyone
+			msg := views.SyncResponse{
+				IsPlaying: r.IsPlaying,
+				CurrentMS: r.GetLivePosition(),
+			}
+			payload, _ := json.Marshal(msg)
+
+			for client := range r.Clients {
+				err := client.Conn.WriteMessage(websocket.TextMessage, payload)
+				if err != nil {
+					client.Conn.Close()
+					delete(r.Clients, client)
+				}
+			}
+			r.Mu.Unlock()
+
+		case <-r.Ctx.Done():
+			return
+		}
+	}
+}
+
+func (r *Room) HandleAction(act views.ActionRequest) {
+	r.Mu.Lock()
+	defer r.Mu.Unlock()
+	do := enums.Action(act.Action)
+	switch do {
+	case enums.PAUSE:
+		if r.IsPlaying {
+			// Anchor the exact position where it paused
+			r.CurrentPositionMs = r.GetLivePosition()
+			r.IsPlaying = false
+			r.LastUpdated = time.Now()
+			log.Infof("[Room %s] Video PAUSED at %d ms", r.ID, r.CurrentPositionMs)
+		}
+
+	case enums.PLAY:
+		if !r.IsPlaying {
+			// Resume timeline from current anchor position
+			r.IsPlaying = true
+			r.LastUpdated = time.Now()
+			log.Infof("[Room %s] Video PLAYED from %d ms", r.ID, r.CurrentPositionMs)
+		}
+
+	case enums.SEEK:
+		// Force new timestamp anchor point
+		r.CurrentPositionMs = act.PositionMs
+		r.LastUpdated = time.Now()
+		log.Infof("[Room %s] Video SEEKED to %d ms", r.ID, act.PositionMs)
+	}
+}

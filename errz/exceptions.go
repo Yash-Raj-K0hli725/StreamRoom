@@ -1,6 +1,7 @@
 package errz
 
 import (
+	"StreamRoom/internal/views"
 	"errors"
 	"fmt"
 	"net/http"
@@ -49,7 +50,7 @@ type AlreadyExists struct {
 func NewAlreadyExists(msg string) *AlreadyExists { return &AlreadyExists{msg, http.StatusConflict} }
 func (e *AlreadyExists) Error() string           { return e.Message }
 
-func handleExceptions(err error) error {
+func HandleExceptions(err error) error {
 	var duplicate *AlreadyExists
 	var notFound *NotFound
 	var unauthorized *Unauthorized
@@ -74,6 +75,34 @@ func handleExceptions(err error) error {
 	default:
 		log.Errorf("something went wrong :: %+v", err)
 		return err
+	}
+}
+
+func FormatError(err error) views.Response {
+	var duplicate *AlreadyExists
+	var notFound *NotFound
+	var unauthorized *Unauthorized
+	var badRequest *BadRequest
+	var forbidden *Forbiddenn
+	switch {
+	case errors.As(err, &forbidden):
+		return views.Response{Code: http.StatusForbidden, Message: err.Error()}
+
+	case errors.As(err, &duplicate):
+		return views.Response{Code: http.StatusConflict, Message: err.Error()}
+
+	case errors.As(err, &notFound):
+		return views.Response{Code: http.StatusNotFound, Message: err.Error()}
+
+	case errors.As(err, &unauthorized):
+		return views.Response{Code: http.StatusUnauthorized, Message: err.Error()}
+
+	case errors.As(err, &badRequest):
+		return views.Response{Code: http.StatusBadRequest, Message: err.Error()}
+
+	default:
+		log.Errorf("something went wrong :: %+v", err)
+		return views.Response{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 }
 

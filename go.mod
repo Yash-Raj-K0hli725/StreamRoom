@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect

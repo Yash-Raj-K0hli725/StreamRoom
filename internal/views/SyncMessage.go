@@ -1,6 +1,6 @@
 package views
 
-type SyncMessage struct {
-	Event     string `json:"event"`
-	CurrentMS int    `json:"ms"`
+type SyncResponse struct {
+	IsPlaying bool  `json:"is_playing"`
+	CurrentMS int64 `json:"ms"`
 }
